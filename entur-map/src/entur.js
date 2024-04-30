@@ -10,7 +10,7 @@ import { getMainDefinition } from "@apollo/client/utilities";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { createClient } from "graphql-ws";
 import Subscriber from "./subscriber";
-import { Bus, VEHICLE_MODES } from "./vehicles";
+import { Bus, Train, Metro, Tram, Ferry, VEHICLE_MODES } from "./vehicles";
 
 
 class VehicleGroup {
@@ -75,19 +75,19 @@ class VehicleGroup {
       }
       case(VEHICLE_MODES.FERRY): {
         // console.log(VEHICLE_MODES.FERRY)
-        return new Bus(data)
+        return new Ferry(data)
       }
       case(VEHICLE_MODES.METRO): {
         // console.log(VEHICLE_MODES.METRO)
-        return new Bus(data)
+        return new Metro(data)
       }
       case(VEHICLE_MODES.RAIL): {
         // console.log(VEHICLE_MODES.RAIL)
-        return new Bus(data)
+        return new Train(data)
       }
       case(VEHICLE_MODES.TRAM): {
         // console.log(VEHICLE_MODES.TRAM)
-        return new Bus(data)
+        return new Tram(data)
       }
     }
   }
