@@ -9,10 +9,14 @@ import {
 import { getMainDefinition } from "@apollo/client/utilities";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { createClient } from "graphql-ws";
+import Subscriber from "./subscriber";
 
 /*
-TODO: -> Note: Confusingly, the subscriptions-transport-ws library calls its WebSocket subprotocol graphql-ws, and the graphql-ws library calls its subprotocol graphql-transport-ws! In this article, we refer to the two libraries (subscriptions-transport-ws and graphql-ws), not the two subprotocols.
-Who the fuck does this!?
+  Since entur has adapted subscriptions-transport-ws created in 2016 and mostly unmaintained since 2018 we are unable to get a response from the graphql subscriptions endpoint without rewriting the
+  old client to work with newer versions of JS.
+
+  So, instead we are going to constantly poll their servers like some sort of morons.
+  This is not a decision that we take lightly.
 */
 
 
@@ -22,36 +26,15 @@ class Vehicles {
       uri: "https://api.dev.entur.io/realtime/v1/vehicles/graphql",
     });
 
-    const wsClient = createClient({
-      url: "wss://api.dev.entur.io/realtime/v1/vehicles/subscriptions",
-      webSocketImpl: class extends WebSocket {
-        constructor(url, protocols) {
-          super(url, 'graphql-ws');
-        }
-      }
-    })
-
-    this.wsLink = new GraphQLWsLink(wsClient);
-
-    const splitLink = split(
-      ({ query }) => {
-        const definition = getMainDefinition(query);
-        return (
-          definition.kind === "OperationDefinition" &&
-          definition.operation === "subscription"
-        );
-      },
-      this.wsLink,
-      this.httpLink
-    );
-
     this.client = new ApolloClient({
-      link: splitLink,
+      link: this.httpLink,
       cache: new InMemoryCache(),
     });
 
     this.codespaces = [];
     this.vehicles = [];
+
+    this.subscriber = new Subscriber('wss://api.dev.entur.io/realtime/v1/vehicles/subscriptions')
 
 
     this.fetchCodeSpaces().then((_codespaces) => {
@@ -74,25 +57,26 @@ class Vehicles {
   }
 
   async performSubscription(query, callback) {
-    const observable = await this.client.subscribe({
-      query: gql`subscription { ${query} }`,
-    });
-
-    const subscription = observable.subscribe({
-      next(response) {
-        if (callback && typeof callback === 'function') {
-          callback(response.data);
-        }
-      },
-      error(error) {
-        console.error("Error during subscription:", error);
-      },
-      complete() {
-        console.log("Subscription complete");
-      }
-    });
-
-    return subscription;
+    this.subscriber.subscribe(query, callback)
+    //const observable = await this.client.subscribe({
+    //  query: gql`subscription { ${query} }`,
+    //});
+//
+    //const subscription = observable.subscribe({
+    //  next(response) {
+    //    if (callback && typeof callback === 'function') {
+    //      callback(response.data);
+    //    }
+    //  },
+    //  error(error) {
+    //    console.error("Error during subscription:", error);
+    //  },
+    //  complete() {
+    //    console.log("Subscription complete");
+    //  }
+    //});
+//
+    //return subscription;
   }
 
   async fetchCodeSpaces() {
@@ -115,7 +99,8 @@ class Vehicles {
   async subscribeVehicles(codespace) {
     return this.performSubscription(
     `
-        vehicles(codespaceId:"${codespace}") {
+    subscription {
+        vehicles(codespaceId: "${codespace}") {
           line {lineRef}
           lastUpdated
           location {
@@ -123,6 +108,7 @@ class Vehicles {
             longitude
           }
         }
+      }
     `, (data) => {
       console.log(data)
     })
