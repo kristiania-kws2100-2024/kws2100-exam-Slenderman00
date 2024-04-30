@@ -4,6 +4,7 @@ import { OSM } from "ol/source";
 import TileLayer from "ol/layer/Tile";
 import { fromLonLat } from 'ol/proj.js';
 import VectorSource from 'ol/source/Vector';
+import GeoJSON from "ol/format/GeoJSON";
 
 import Entur from './entur.js';
 import './Map.css'
@@ -19,9 +20,18 @@ const MapComponent: React.FC = () => {
   useEffect(() => {
     let entur = new Entur()
 
+    let vectorSourceFylker = new VectorSource({
+      format: new GeoJSON(),
+      url: "/fylker.geojson",
+      wrapX: false,
+    });
+
     let map = new Map({
       target: mapRef.current,
       layers: [
+        new VectorLayer({
+          source: vectorSourceFylker
+        }),
         new TileLayer({
           source: new OSM(),
         }),
@@ -40,23 +50,27 @@ const MapComponent: React.FC = () => {
         vehicle.updatePoint(vectorSource, map)
       });
     }, 100)
-
-    let visible = true;
     
     map.on('pointerdrag', (_) => setInfoBox(<></>))
     map.on('moveend', (_) => setInfoBox(<></>))
 
+
+    let fylke: any;
     map.on('click', (event) => {
       let click = false;
       //get whole vehicle pool to extract data
       let vehicles = entur.getVehiclePool()
       map.forEachFeatureAtPixel(event.pixel, (feature, layer) => {
+        if (layer && layer.getSource() === vectorSourceFylker) {
+          fylke = feature.get('fylkesnavn')
+        }
+
         vehicles.forEach(vehicle => {
           if(vehicle.id == feature.getId()) {
             click = true;
             setInfoBox(<></>)
             setTimeout(() => {
-              setInfoBox(<InfoComponent vehicle={vehicle} event={event}/>);
+              setInfoBox(<InfoComponent vehicle={vehicle} event={event} layer={layer} fylke={fylke}/>);
             }, 50)  
           }
         }); 

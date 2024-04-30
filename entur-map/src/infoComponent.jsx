@@ -40,6 +40,19 @@ const LineNameComp = (props) => {
     )
 }
 
+const FylkeComp = (props) => {
+    if(!props.fylke) {
+        return(
+            <></>
+        )
+    }
+    return(
+        <div id='fylke'>
+            {props.fylke}
+        </div>
+    )
+}
+
 const InfoComponent = (props) => {
     const [infoHeight, setInfoHeight] = useState(0);
     const infoRef = useRef(null);
@@ -55,6 +68,7 @@ const InfoComponent = (props) => {
             <LineNameComp lineName={props.vehicle.lineName} />
             <DestComp origin={props.vehicle.originName} destination={props.vehicle.destinationName} />
             <SpeedComp speed={props.vehicle.speed}></SpeedComp>
+            <FylkeComp fylke={props.fylke}></FylkeComp>
             <div id="borderBottom"></div>
         </div>
     )
