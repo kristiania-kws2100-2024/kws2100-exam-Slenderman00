@@ -12,14 +12,6 @@ import { createClient } from "graphql-ws";
 import Subscriber from "./subscriber";
 import { Bus, VEHICLE_MODES } from "./vehicles";
 
-/*
-  Since entur has adapted subscriptions-transport-ws created in 2016 and mostly unmaintained since 2018 we are unable to get a response from the graphql subscriptions endpoint without rewriting the
-  old client to work with newer versions of JS.
-
-  So, instead we are going to constantly poll their servers like some sort of morons.
-  This is not a decision that we take lightly.
-*/
-
 
 class VehicleGroup {
   constructor(subscriber, codespace) {
