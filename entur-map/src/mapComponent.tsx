@@ -17,12 +17,6 @@ const MapComponent: React.FC = () => {
   useEffect(() => {
     let entur = new Entur()
 
-    setInterval(() => {
-      entur.getVehiclePool().forEach(vehicle => {
-        vehicle.updatePoint(vectorSource)
-      });
-    }, 500)
-
     let map = new Map({
       target: mapRef.current,
       layers: [
@@ -39,8 +33,13 @@ const MapComponent: React.FC = () => {
       }),
     });
 
+    setInterval(() => {
+      entur.getVehiclePool().forEach(vehicle => {
+        vehicle.updatePoint(vectorSource, map)
+      });
+    }, 100)
+
     return () => {
-      //Makes sure it does not generate multiple maps
       map.setTarget();
     };
   }, [])
