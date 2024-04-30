@@ -7,6 +7,7 @@ import VectorSource from 'ol/source/Vector';
 
 import Entur from './entur.js';
 import './Map.css'
+import VectorLayer from "ol/layer/Vector.js";
 
 const MapComponent: React.FC = () => {
   const mapRef = useRef() as MutableRefObject<HTMLDivElement>;
@@ -16,12 +17,21 @@ const MapComponent: React.FC = () => {
   useEffect(() => {
     let entur = new Entur()
 
+    setInterval(() => {
+      entur.getVehiclePool().forEach(vehicle => {
+        vehicle.updatePoint(vectorSource)
+      });
+    }, 500)
+
     let map = new Map({
       target: mapRef.current,
       layers: [
         new TileLayer({
           source: new OSM(),
         }),
+        new VectorLayer({
+          source: vectorSource,
+        })
       ],
       view: new View({
         center: fromLonLat([10.757933, 59.911491]),

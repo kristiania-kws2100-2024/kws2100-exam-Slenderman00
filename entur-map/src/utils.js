@@ -24,4 +24,5 @@ function haversineDistance(coords1, coords2) {
     return R * c;
 }
 
+
 export { toRadians, haversineDistance }

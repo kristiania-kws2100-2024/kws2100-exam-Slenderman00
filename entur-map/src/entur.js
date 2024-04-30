@@ -24,10 +24,10 @@ class VehicleGroup {
   }
 
   getVehiclePool() {
-    _vehicles = []
-    this.vehicles.forEach(vehicle => {
+    let _vehicles = []
+    for(const [_, vehicle] of Object.entries(this.vehicles)) {
       _vehicles.push(vehicle)
-    });
+    } 
 
     return _vehicles
   }
@@ -95,7 +95,7 @@ class VehicleGroup {
   updateVehicles(data) {
     data['vehicles'].forEach(vehicleData => {
       if(vehicleData['vehicleId'] in this.vehicles) {
-        this.vehicles[vehicleData['vehicleId']].update(data)
+        this.vehicles[vehicleData['vehicleId']].update(vehicleData)
       } else {
         this.vehicles[vehicleData['vehicleId']] = this.createVehicle(vehicleData)
       }
@@ -106,7 +106,7 @@ class VehicleGroup {
 class Entur {
   constructor() {
     this.httpLink = new HttpLink({
-      uri: "https://api.dev.entur.io/realtime/v1/vehicles/graphql",
+      uri: "https://api.entur.io/realtime/v1/vehicles/graphql",
     });
 
     this.client = new ApolloClient({
@@ -117,7 +117,7 @@ class Entur {
     this.codespaces = [];
     this.vehicleGroups = [];
 
-    this.subscriber = new Subscriber('wss://api.dev.entur.io/realtime/v1/vehicles/subscriptions')
+    this.subscriber = new Subscriber('wss://api.entur.io/realtime/v1/vehicles/subscriptions')
 
 
     this.fetchCodeSpaces().then((_codespaces) => {
@@ -128,7 +128,7 @@ class Entur {
   }
 
   getVehiclePool() {
-    vehicles = []
+    let vehicles = []
     this.vehicleGroups.forEach(vehicleGroup => {
       vehicles = vehicles.concat(vehicleGroup.getVehiclePool())
     });

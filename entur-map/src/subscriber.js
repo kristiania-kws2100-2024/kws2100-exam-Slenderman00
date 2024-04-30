@@ -13,20 +13,33 @@ const GRAPHQL_WS_PROTOCOL = {
 
 class Subscriber {
   constructor(url) {
+		this.webSocket;
     this.url = url;
-    this.webSocket = new WebSocket(url, "graphql-ws");
+		this.query = ''
     this.subscriptions = {}
+		this.queries = []
 
-    this.webSocket.onopen = (event) => {
+		this.initWebsocket()
+  }
+
+	initWebsocket() {
+		this.webSocket = new WebSocket(this.url, "graphql-ws");
+
+		this.webSocket.onopen = (event) => {
       this.webSocket.send(
         JSON.stringify({
           type: GRAPHQL_WS_PROTOCOL.CONNECTION_INIT
         })
       );
+			this.renewSubscriptions()
     };
 
+		this.webSocket.onclose = (event) => {
+			this.initWebsocket()
+		}
+
     this.webSocket.addEventListener("message", (event) => this.onMessage(event));
-  }
+	}
 
   onMessage(event) {
 		let data = JSON.parse(event.data);
@@ -53,7 +66,14 @@ class Subscriber {
     this.webSocket.send(JSON.stringify({"id": String(id),"type": GRAPHQL_WS_PROTOCOL.START,"payload": { "query": query } }))
 
     this.subscriptions[id] = callback
+		this.queries.push({'id': id, 'query': query})
   }
+
+	renewSubscriptions() {
+		this.queries.forEach(query => {
+			this.webSocket.send(JSON.stringify({"id": String(query['id']),"type": GRAPHQL_WS_PROTOCOL.START,"payload": { "query": query['query'] } }))
+		});
+	}
 }
 
 
