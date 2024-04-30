@@ -60,6 +60,7 @@ const MapComponent: React.FC = () => {
       let click = false;
       //get whole vehicle pool to extract data
       let vehicles = entur.getVehiclePool()
+      fylke = null;
       map.forEachFeatureAtPixel(event.pixel, (feature, layer) => {
         if (layer && layer.getSource() === vectorSourceFylker) {
           fylke = feature.get('fylkesnavn')
