@@ -25,10 +25,12 @@ class Subscriber {
       );
     };
 
-    this.webSocket.onMessage = (event) => {
-      const data = JSON.parse(event.data);
+    this.webSocket.addEventListener("message", (event) => this.onMessage(event));
+  }
 
-      switch (data.type) {
+  onMessage(event) {
+		let data = JSON.parse(event.data);
+    switch (data.type) {
         case GRAPHQL_WS_PROTOCOL.CONNECTION_ACK: {
           console.log("success");
           break;
@@ -40,8 +42,10 @@ class Subscriber {
         case GRAPHQL_WS_PROTOCOL.CONNECTION_KEEP_ALIVE: {
           break;
         }
+				case GRAPHQL_WS_PROTOCOL.DATA: {
+					this.subscriptions[data.id](data['payload']['data'])
+				}
       }
-    };
   }
 
   subscribe(query, callback) {

@@ -3,16 +3,18 @@ import { Map, View } from "ol";
 import { OSM } from "ol/source";
 import TileLayer from "ol/layer/Tile";
 import {fromLonLat} from 'ol/proj.js';
+import VectorSource from 'ol/source/Vector';
 
-import Vehicles from './vehicles.js';
+import Entur from './entur.js';
 import './Map.css'
 
 const MapComponent: React.FC = () => {
   const mapRef = useRef() as MutableRefObject<HTMLDivElement>;
-  const [_vehicles, setVehicles] = useState<Vehicles | null>(null);
+  const [vectorSource] = useState(new VectorSource());
+
 
   useEffect(() => {
-    setVehicles(new Vehicles())
+    let entur = new Entur()
 
     let map = new Map({
       target: mapRef.current,
