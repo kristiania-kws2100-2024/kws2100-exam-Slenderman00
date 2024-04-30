@@ -4,7 +4,7 @@ import Feature from 'ol/Feature';
 import { fromLonLat } from 'ol/proj';
 import { containsCoordinate } from 'ol/extent';
 
-import { haversineDistance, toRadians, getArrRandom } from "./utils";
+import { haversineDistance, toRadians, getArrRandom, haversineBearing } from "./utils";
 import { execute } from "graphql";
 import { none } from "ol/centerconstraint";
 
@@ -24,6 +24,8 @@ class Vehicle {
 
     this.point = null;
 
+    this.lineName;
+
     this.id = Math.round((Math.random() * 999999) + 1)
     this.vehicleId;
     this.location;
@@ -37,7 +39,6 @@ class Vehicle {
 
     this.destinationName;
     this.inCongestion;
-
     this.originName;
   }
 
@@ -119,24 +120,28 @@ class Vehicle {
   update(data) {
     this.vehicleId = data["vehicleId"];
 
+    this.lineName = data["line"]["lineName"];
+
     this.lastLocation = this.location ?? { 'latitude': 0, 'longitude': 0 };
     this.location = data["location"] ?? { 'latitude': 0, 'longitude': 0 }; // We send everything that fails here
     
     this.lastUpdated = this.updated;
     this.updated = new Date(data["lastUpdated"]).getTime() / 1000;
 
-    this.lastBearing = this.bearing ?? 0;
+    this.lastBearing = this.bearing;
     this.bearing = data["bearing"] ?? 0;
-    if(data['speed'] != undefined) {
-        this.speed = data['speed'] * (1000 / 3600)
-    }
-    this.speed = data["speed"] ?? this.calculateSpeed();
+
+    //if(data['speed'] != undefined) {
+    //    this.speed = data['speed'] * (1000 / 3600)
+    //}
+
+    this.speed = data["speed"] ?? this.calculateSpeed()
     this.speed = Math.round(this.speed)
 
     //console.log(this.speed)
-    this.destinationName = data["destinationName"] ?? "Unknown";
+    this.destinationName = data["destinationName"];
     this.inCongestion = data["inCongestion"] ?? false;
-    this.originName = data["originName"] ?? "Unknown";
+    this.originName = data["originName"];
   }
 
   calculateSpeed() {

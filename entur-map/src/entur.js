@@ -37,7 +37,10 @@ class VehicleGroup {
     `
     subscription {
         vehicles(codespaceId: "${codespace}") {
-          line {lineRef}
+          line {
+            lineRef
+            lineName
+          }
           lastUpdated
           bearing
           speed
