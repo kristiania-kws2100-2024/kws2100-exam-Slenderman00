@@ -1,5 +1,5 @@
 import React, { MutableRefObject, useRef, useEffect, useState } from "react";
-import { Feature, Map, View } from "ol";
+import { Map, View } from "ol";
 import { OSM } from "ol/source";
 import TileLayer from "ol/layer/Tile";
 import { fromLonLat } from 'ol/proj.js';
