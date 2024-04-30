@@ -10,6 +10,12 @@ import { getMainDefinition } from "@apollo/client/utilities";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { createClient } from "graphql-ws";
 
+/*
+TODO: -> Note: Confusingly, the subscriptions-transport-ws library calls its WebSocket subprotocol graphql-ws, and the graphql-ws library calls its subprotocol graphql-transport-ws! In this article, we refer to the two libraries (subscriptions-transport-ws and graphql-ws), not the two subprotocols.
+Who the fuck does this!?
+*/
+
+
 class Vehicles {
   constructor() {
     this.httpLink = new HttpLink({
@@ -18,6 +24,11 @@ class Vehicles {
 
     const wsClient = createClient({
       url: "wss://api.dev.entur.io/realtime/v1/vehicles/subscriptions",
+      webSocketImpl: class extends WebSocket {
+        constructor(url, protocols) {
+          super(url, 'graphql-ws');
+        }
+      }
     })
 
     this.wsLink = new GraphQLWsLink(wsClient);
@@ -42,12 +53,10 @@ class Vehicles {
     this.codespaces = [];
     this.vehicles = [];
 
-    wsClient.on('connected', () => {
-      console.log("yeeet")
-      this.fetchCodeSpaces().then((_codespaces) => {
-        _codespaces.forEach((codespace) => {
-          this.subscribeVehicles(codespace);
-        });
+
+    this.fetchCodeSpaces().then((_codespaces) => {
+      _codespaces.forEach((codespace) => {
+        this.subscribeVehicles(codespace);
       });
     });
   }
