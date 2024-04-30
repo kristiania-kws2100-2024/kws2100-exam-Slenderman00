@@ -24,5 +24,8 @@ function haversineDistance(coords1, coords2) {
     return R * c;
 }
 
+function getArrRandom(array) {
+    return array[Math.floor(Math.random() * array.length)]
+}
 
-export { toRadians, haversineDistance }
+export { toRadians, haversineDistance, getArrRandom }
