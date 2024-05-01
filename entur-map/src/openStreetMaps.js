@@ -15,8 +15,6 @@ function featureSwitch(feature) {
   const properties = feature.getProperties();
   const layer = properties.layer;
 
-  console.log(layer);
-
   switch (layer) {
     case "transportation": {
       return new Style({
