@@ -12,29 +12,28 @@ import { createClient } from "graphql-ws";
 import Subscriber from "./subscriber";
 import { Bus, Train, Metro, Tram, Ferry, VEHICLE_MODES } from "./vehicles";
 
-
 class VehicleGroup {
   constructor(subscriber, codespace) {
-    this.subscriber = subscriber
-    this.codespace = codespace
+    this.subscriber = subscriber;
+    this.codespace = codespace;
 
-    this.vehicles = {}
+    this.vehicles = {};
 
-    this.subscribeVehicles(this.codespace, (data) => this.updateVehicles(data))
+    this.subscribeVehicles(this.codespace, (data) => this.updateVehicles(data));
   }
 
   getVehiclePool() {
-    let _vehicles = []
-    for(const [_, vehicle] of Object.entries(this.vehicles)) {
-      _vehicles.push(vehicle)
-    } 
+    let _vehicles = [];
+    for (const [_, vehicle] of Object.entries(this.vehicles)) {
+      _vehicles.push(vehicle);
+    }
 
-    return _vehicles
+    return _vehicles;
   }
 
   subscribeVehicles(codespace, callback) {
     return this.subscriber.subscribe(
-    `
+      `
     subscription {
         vehicles(codespaceId: "${codespace}") {
           line {
@@ -57,50 +56,53 @@ class VehicleGroup {
           }
         }
       }
-    `, (data) => {
-      callback(data)
-    })
+    `,
+      (data) => {
+        callback(data);
+      }
+    );
   }
 
   createVehicle(data) {
-    switch(data['mode']) {
-      case(VEHICLE_MODES.AIR): {
+    switch (data["mode"]) {
+      case VEHICLE_MODES.AIR: {
         // console.log(VEHICLE_MODES.AIR)
-        return new Bus(data)
+        return new Bus(data);
       }
-      case(VEHICLE_MODES.BUS): {
+      case VEHICLE_MODES.BUS: {
         // console.log(VEHICLE_MODES.BUS)
-        return new Bus(data)
+        return new Bus(data);
       }
-      case(VEHICLE_MODES.COACH): {
+      case VEHICLE_MODES.COACH: {
         // console.log(VEHICLE_MODES.COACH)
-        return new Bus(data)
+        return new Bus(data);
       }
-      case(VEHICLE_MODES.FERRY): {
+      case VEHICLE_MODES.FERRY: {
         // console.log(VEHICLE_MODES.FERRY)
-        return new Ferry(data)
+        return new Ferry(data);
       }
-      case(VEHICLE_MODES.METRO): {
+      case VEHICLE_MODES.METRO: {
         // console.log(VEHICLE_MODES.METRO)
-        return new Metro(data)
+        return new Metro(data);
       }
-      case(VEHICLE_MODES.RAIL): {
+      case VEHICLE_MODES.RAIL: {
         // console.log(VEHICLE_MODES.RAIL)
-        return new Train(data)
+        return new Train(data);
       }
-      case(VEHICLE_MODES.TRAM): {
+      case VEHICLE_MODES.TRAM: {
         // console.log(VEHICLE_MODES.TRAM)
-        return new Tram(data)
+        return new Tram(data);
       }
     }
   }
 
   updateVehicles(data) {
-    data['vehicles'].forEach(vehicleData => {
-      if(vehicleData['vehicleId'] in this.vehicles) {
-        this.vehicles[vehicleData['vehicleId']].update(vehicleData)
+    data["vehicles"].forEach((vehicleData) => {
+      if (vehicleData["vehicleId"] in this.vehicles) {
+        this.vehicles[vehicleData["vehicleId"]].update(vehicleData);
       } else {
-        this.vehicles[vehicleData['vehicleId']] = this.createVehicle(vehicleData)
+        this.vehicles[vehicleData["vehicleId"]] =
+          this.createVehicle(vehicleData);
       }
     });
   }
@@ -120,23 +122,24 @@ class Entur {
     this.codespaces = [];
     this.vehicleGroups = [];
 
-    this.subscriber = new Subscriber('wss://api.entur.io/realtime/v1/vehicles/subscriptions')
-
+    this.subscriber = new Subscriber(
+      "wss://api.entur.io/realtime/v1/vehicles/subscriptions"
+    );
 
     this.fetchCodeSpaces().then((_codespaces) => {
       _codespaces.forEach((codespace) => {
-        this.vehicleGroups.push(new VehicleGroup(this.subscriber, codespace))
+        this.vehicleGroups.push(new VehicleGroup(this.subscriber, codespace));
       });
     });
   }
 
   getVehiclePool() {
-    let vehicles = []
-    this.vehicleGroups.forEach(vehicleGroup => {
-      vehicles = vehicles.concat(vehicleGroup.getVehiclePool())
+    let vehicles = [];
+    this.vehicleGroups.forEach((vehicleGroup) => {
+      vehicles = vehicles.concat(vehicleGroup.getVehiclePool());
     });
 
-    return vehicles
+    return vehicles;
   }
 
   async performQuery(query) {
@@ -153,7 +156,7 @@ class Entur {
 
   async fetchCodeSpaces() {
     return this.performQuery(
-    `
+      `
       codespaces {
           codespaceId
       }

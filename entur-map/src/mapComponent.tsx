@@ -2,23 +2,22 @@ import React, { MutableRefObject, useRef, useEffect, useState } from "react";
 import { Map, View } from "ol";
 import { OSM } from "ol/source";
 import TileLayer from "ol/layer/Tile";
-import { fromLonLat } from 'ol/proj.js';
-import VectorSource from 'ol/source/Vector';
+import { fromLonLat } from "ol/proj.js";
+import VectorSource from "ol/source/Vector";
 import GeoJSON from "ol/format/GeoJSON";
 
-import Entur from './entur.js';
-import './Map.css'
+import Entur from "./entur.js";
+import "./Map.css";
 import VectorLayer from "ol/layer/Vector.js";
 import InfoComponent from "./infoComponent.jsx";
 
 const MapComponent: React.FC = () => {
   const mapRef = useRef() as MutableRefObject<HTMLDivElement>;
   const [vectorSource] = useState(new VectorSource());
-  const [infoBox, setInfoBox] = useState<JSX.Element>()
-
+  const [infoBox, setInfoBox] = useState<JSX.Element>();
 
   useEffect(() => {
-    let entur = new Entur()
+    let entur = new Entur();
 
     let vectorSourceFylker = new VectorSource({
       format: new GeoJSON(),
@@ -30,14 +29,14 @@ const MapComponent: React.FC = () => {
       target: mapRef.current,
       layers: [
         new VectorLayer({
-          source: vectorSourceFylker
+          source: vectorSourceFylker,
         }),
         new TileLayer({
           source: new OSM(),
         }),
         new VectorLayer({
           source: vectorSource,
-        })
+        }),
       ],
       view: new View({
         center: fromLonLat([10.757933, 59.911491]),
@@ -46,53 +45,55 @@ const MapComponent: React.FC = () => {
     });
 
     setInterval(() => {
-      entur.getVehiclePool().forEach(vehicle => {
-        vehicle.updatePoint(vectorSource, map)
+      entur.getVehiclePool().forEach((vehicle) => {
+        vehicle.updatePoint(vectorSource, map);
       });
-    }, 100)
-    
-    map.on('pointerdrag', (_) => setInfoBox(<></>))
-    map.on('moveend', (_) => setInfoBox(<></>))
+    }, 100);
 
+    map.on("pointerdrag", (_) => setInfoBox(<></>));
+    map.on("moveend", (_) => setInfoBox(<></>));
 
     let fylke: any;
-    map.on('click', (event) => {
+    map.on("click", (event) => {
       let click = false;
       //get whole vehicle pool to extract data
-      let vehicles = entur.getVehiclePool()
+      let vehicles = entur.getVehiclePool();
       fylke = null;
       map.forEachFeatureAtPixel(event.pixel, (feature, layer) => {
         if (layer && layer.getSource() === vectorSourceFylker) {
-          fylke = feature.get('fylkesnavn')
+          fylke = feature.get("fylkesnavn");
         }
 
-        vehicles.forEach(vehicle => {
-          if(vehicle.id == feature.getId()) {
+        vehicles.forEach((vehicle) => {
+          if (vehicle.id == feature.getId()) {
             click = true;
-            setInfoBox(<></>)
+            setInfoBox(<></>);
             setTimeout(() => {
-              setInfoBox(<InfoComponent vehicle={vehicle} event={event} layer={layer} fylke={fylke}/>);
-            }, 50)  
+              setInfoBox(
+                <InfoComponent
+                  vehicle={vehicle}
+                  event={event}
+                  layer={layer}
+                  fylke={fylke}
+                />
+              );
+            }, 50);
           }
-        }); 
-      })
+        });
+      });
       if (!click) {
-        setInfoBox(<></>)
+        setInfoBox(<></>);
       }
-
-    })
+    });
 
     return () => {
       map.setTarget();
     };
-  }, [])
+  }, []);
 
   return (
     <>
-      <div
-        ref={mapRef}
-        className="map"
-      />
+      <div ref={mapRef} className="map" />
       {infoBox}
     </>
   );

@@ -1,10 +1,15 @@
 import Point from "ol/geom/Point";
 import { Icon, Style } from "ol/style";
-import Feature from 'ol/Feature';
-import { fromLonLat } from 'ol/proj';
-import { containsCoordinate } from 'ol/extent';
+import Feature from "ol/Feature";
+import { fromLonLat } from "ol/proj";
+import { containsCoordinate } from "ol/extent";
 
-import { haversineDistance, toRadians, getArrRandom, haversineBearing } from "./utils";
+import {
+  haversineDistance,
+  toRadians,
+  getArrRandom,
+  haversineBearing,
+} from "./utils";
 import { execute } from "graphql";
 import { none } from "ol/centerconstraint";
 
@@ -26,7 +31,7 @@ class Vehicle {
 
     this.lineName;
 
-    this.id = Math.round((Math.random() * 999999) + 1)
+    this.id = Math.round(Math.random() * 999999 + 1);
     this.vehicleId;
     this.location;
     this.updated;
@@ -51,59 +56,65 @@ class Vehicle {
     }
   }
 
-
   updatePoint(vectorSource, map) {
-    if (this.point != null && this.lastLocation.longitude != 0 && this.lastLocation.latitude != 0 && this.location.longitude != 0 && this.location.latitude != 0) {
-        let oldPos = this.point.getGeometry().getCoordinates();
-        let newPos = fromLonLat([this.lastLocation.longitude, this.lastLocation.latitude]);
+    if (
+      this.point != null &&
+      this.lastLocation.longitude != 0 &&
+      this.lastLocation.latitude != 0 &&
+      this.location.longitude != 0 &&
+      this.location.latitude != 0
+    ) {
+      let oldPos = this.point.getGeometry().getCoordinates();
+      let newPos = fromLonLat([
+        this.lastLocation.longitude,
+        this.lastLocation.latitude,
+      ]);
 
-        let extent = map.getView().calculateExtent(map.getSize());
-        let zoom = map.getView().getZoom();
+      let extent = map.getView().calculateExtent(map.getSize());
+      let zoom = map.getView().getZoom();
 
-        if (containsCoordinate(extent, newPos) && zoom > 9) {
+      if (containsCoordinate(extent, newPos) && zoom > 9) {
+        // Calculate the distance and direction between old and new positions
+        let dx = newPos[0] - oldPos[0];
+        let dy = newPos[1] - oldPos[1];
+        let distance = Math.sqrt(dx * dx + dy * dy);
+        let direction = Math.atan2(dy, dx);
 
-            // Calculate the distance and direction between old and new positions
-            let dx = newPos[0] - oldPos[0];
-            let dy = newPos[1] - oldPos[1];
-            let distance = Math.sqrt(dx * dx + dy * dy);
-            let direction = Math.atan2(dy, dx);
+        // Define animation parameters
+        let animationDuration = 1000;
+        let startTime = null;
 
-            // Define animation parameters
-            let animationDuration = 1000
-            let startTime = null;
+        // Define the animation function
+        let animate = (timestamp) => {
+          if (!startTime) startTime = timestamp;
+          let progress = timestamp - startTime;
+          let frac = Math.min(progress / animationDuration, 1); // Fraction of completion
 
-            // Define the animation function
-            let animate = (timestamp) => {
-                if (!startTime) startTime = timestamp;
-                let progress = timestamp - startTime;
-                let frac = Math.min(progress / animationDuration, 1); // Fraction of completion
+          // Calculate the interpolated position
+          let interpX = oldPos[0] + dx * frac;
+          let interpY = oldPos[1] + dy * frac;
+          let interpPos = [interpX, interpY];
 
-                // Calculate the interpolated position
-                let interpX = oldPos[0] + dx * frac;
-                let interpY = oldPos[1] + dy * frac;
-                let interpPos = [interpX, interpY];
+          // Update the point position
+          this.point.setGeometry(new Point(interpPos));
 
-                // Update the point position
-                this.point.setGeometry(new Point(interpPos));
-
-                // Continue the animation if not finished
-                if (frac < 1) {
-                    requestAnimationFrame(animate);
-                }
-            };
-
-            // Start the animation
+          // Continue the animation if not finished
+          if (frac < 1) {
             requestAnimationFrame(animate);
-        } else {
-            this.point.setGeometry(new Point(newPos));
-        }
+          }
+        };
 
-        this.point.setStyle(this.style);
+        // Start the animation
+        requestAnimationFrame(animate);
+      } else {
+        this.point.setGeometry(new Point(newPos));
+      }
+
+      this.point.setStyle(this.style);
     } else {
-        this.createPoint(vectorSource);
+      this.createPoint(vectorSource);
     }
-}
-
+  }
 
   createPoint(vectorSource) {
     this.point = new Feature({
@@ -112,9 +123,9 @@ class Vehicle {
       ),
     });
 
-    this.point.setId(this.id)
+    this.point.setId(this.id);
     this.point.setStyle(this.style);
-    vectorSource.addFeature(this.point)
+    vectorSource.addFeature(this.point);
   }
 
   update(data) {
@@ -122,9 +133,9 @@ class Vehicle {
 
     this.lineName = data["line"]["lineName"];
 
-    this.lastLocation = this.location ?? { 'latitude': 0, 'longitude': 0 };
-    this.location = data["location"] ?? { 'latitude': 0, 'longitude': 0 }; // We send everything that fails here
-    
+    this.lastLocation = this.location ?? { latitude: 0, longitude: 0 };
+    this.location = data["location"] ?? { latitude: 0, longitude: 0 }; // We send everything that fails here
+
     this.lastUpdated = this.updated;
     this.updated = new Date(data["lastUpdated"]).getTime() / 1000;
 
@@ -135,8 +146,8 @@ class Vehicle {
     //    this.speed = data['speed'] * (1000 / 3600)
     //}
 
-    this.speed = data["speed"] ?? this.calculateSpeed()
-    this.speed = Math.round(this.speed)
+    this.speed = data["speed"] ?? this.calculateSpeed();
+    this.speed = Math.round(this.speed);
 
     //console.log(this.speed)
     this.destinationName = data["destinationName"];
@@ -164,69 +175,69 @@ class Bus extends Vehicle {
     super(data);
 
     this.style = new Style({
-        image: new Icon({
-          src: getArrRandom(['blue_bus.png', 'yellow_bus.png']),
-          scale: 0.04,
-          rotation: toRadians((this.bearing) - 90)
-        }),
-    })
+      image: new Icon({
+        src: getArrRandom(["blue_bus.png", "yellow_bus.png"]),
+        scale: 0.04,
+        rotation: toRadians(this.bearing - 90),
+      }),
+    });
   }
 }
 
 class Train extends Vehicle {
-    constructor(data) {
-        super(data);
+  constructor(data) {
+    super(data);
 
-        this.style = new Style({
-            image: new Icon({
-              src: getArrRandom(['train_red.png', 'train_grey.png']),
-              scale: 0.04,
-              rotation: toRadians(this.bearing),
-            }),
-        })
-    }
+    this.style = new Style({
+      image: new Icon({
+        src: getArrRandom(["train_red.png", "train_grey.png"]),
+        scale: 0.04,
+        rotation: toRadians(this.bearing),
+      }),
+    });
+  }
 }
 
 class Metro extends Vehicle {
-    constructor(data) {
-        super(data);
+  constructor(data) {
+    super(data);
 
-        this.style = new Style({
-            image: new Icon({
-              src: getArrRandom(['metro_dark.png', 'metro_light.png']),
-              scale: 0.04,
-              rotation: toRadians(this.bearing),
-            }),
-        })
-    }
+    this.style = new Style({
+      image: new Icon({
+        src: getArrRandom(["metro_dark.png", "metro_light.png"]),
+        scale: 0.04,
+        rotation: toRadians(this.bearing),
+      }),
+    });
+  }
 }
 
 class Tram extends Vehicle {
-    constructor(data) {
-        super(data);
+  constructor(data) {
+    super(data);
 
-        this.style = new Style({
-            image: new Icon({
-              src: getArrRandom(['tram_dark.png', 'tram_light.png']),
-              scale: 0.04,
-              rotation: toRadians(this.bearing),
-            }),
-        })
-    }
+    this.style = new Style({
+      image: new Icon({
+        src: getArrRandom(["tram_dark.png", "tram_light.png"]),
+        scale: 0.04,
+        rotation: toRadians(this.bearing),
+      }),
+    });
+  }
 }
 
 class Ferry extends Vehicle {
-    constructor(data) {
-        super(data);
+  constructor(data) {
+    super(data);
 
-        this.style = new Style({
-            image: new Icon({
-              src: 'cruise.png',
-              scale: 0.06,
-              rotation: toRadians(this.bearing),
-            }),
-        })
-    }
+    this.style = new Style({
+      image: new Icon({
+        src: "cruise.png",
+        scale: 0.06,
+        rotation: toRadians(this.bearing),
+      }),
+    });
+  }
 }
 
 export { VEHICLE_MODES, Vehicle, Bus, Train, Metro, Tram, Ferry };
