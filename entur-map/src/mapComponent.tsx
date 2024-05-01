@@ -22,7 +22,7 @@ const MapComponent: React.FC = () => {
 
     let vectorSourceFylker = new VectorSource({
       format: new GeoJSON(),
-      url: "/fylker.geojson",
+      url: "/kws2100-exam-Slenderman00/fylker.geojson",
       wrapX: false,
     });
 
