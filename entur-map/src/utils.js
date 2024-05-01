@@ -55,4 +55,21 @@ function getArrRandom(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-export { toRadians, haversineDistance, getArrRandom, haversineBearing };
+function simpleHash(str) {
+  const len = str.length;
+  const hashValue = ((len * 14352) % 100) / 100;
+
+  return hashValue;
+}
+
+function getArrRandomDeterministic(array, seed) {
+  return array[Math.floor(simpleHash(seed) * array.length)];
+}
+
+export {
+  toRadians,
+  haversineDistance,
+  getArrRandom,
+  haversineBearing,
+  getArrRandomDeterministic,
+};

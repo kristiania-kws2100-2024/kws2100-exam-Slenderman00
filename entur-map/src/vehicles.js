@@ -74,37 +74,30 @@ class Vehicle {
       let zoom = map.getView().getZoom();
 
       if (containsCoordinate(extent, newPos) && zoom > 9) {
-        // Calculate the distance and direction between old and new positions
         let dx = newPos[0] - oldPos[0];
         let dy = newPos[1] - oldPos[1];
         let distance = Math.sqrt(dx * dx + dy * dy);
         let direction = Math.atan2(dy, dx);
 
-        // Define animation parameters
         let animationDuration = 1000;
         let startTime = null;
 
-        // Define the animation function
         let animate = (timestamp) => {
           if (!startTime) startTime = timestamp;
           let progress = timestamp - startTime;
-          let frac = Math.min(progress / animationDuration, 1); // Fraction of completion
+          let frac = Math.min(progress / animationDuration, 1);
 
-          // Calculate the interpolated position
           let interpX = oldPos[0] + dx * frac;
           let interpY = oldPos[1] + dy * frac;
           let interpPos = [interpX, interpY];
 
-          // Update the point position
           this.point.setGeometry(new Point(interpPos));
 
-          // Continue the animation if not finished
           if (frac < 1) {
             requestAnimationFrame(animate);
           }
         };
 
-        // Start the animation
         requestAnimationFrame(animate);
       } else {
         this.point.setGeometry(new Point(newPos));

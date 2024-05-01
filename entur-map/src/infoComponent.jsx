@@ -40,7 +40,6 @@ const InfoComponent = (props) => {
   const infoRef = useRef(null);
 
   useEffect(() => {
-    // Update height when the component mounts or props change
     setInfoHeight(infoRef.current.clientHeight);
   }, [props]);
 
