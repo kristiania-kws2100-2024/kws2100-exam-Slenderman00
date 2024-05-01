@@ -4,6 +4,8 @@
 - When the zoom is closer than 10 the vehicles will animate instead of teleporting
 - Due to enturs low polling rate it sometimes seems like everything is standing still
 - Clicking on a vehicle will show the fylke the vehicle is in it will also show some other available interresting information if available
+- Entur is usually quite slow when initially responding to all subscriptions so give the application some time to load in all vehicles (10s ish)
+- It is worth noting that the entur class actually keeps track of all vehicles and moves them (instead of redrawing all points), the implementation is quite complex yet still efficient.
 
 [The website can be found here](https://kristiania-kws2100-2024.github.io/kws2100-exam-Slenderman00/)
 
